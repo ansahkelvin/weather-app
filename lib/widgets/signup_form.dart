@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:farmers/pages/home.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -9,12 +12,39 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
+  final nameContoller = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  Future<void> signup() async {
+    try {
+      final user = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text, password: passwordController.text);
+      final db = FirebaseFirestore.instance;
+
+      final documentPath = db.doc("users/${user.user!.uid}");
+      documentPath
+          .set({"email": emailController.text, "name": nameContoller.text});
+      Navigator.of(context).pushReplacementNamed(HomePage.routeName);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString(),
+          ),
+        ),
+      );
+    }
+  }
+
   bool visible = true;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextFormField(
+          controller: nameContoller,
           autocorrect: false,
           textInputAction: TextInputAction.next,
           decoration: const InputDecoration(
@@ -32,6 +62,7 @@ class _RegisterFormState extends State<RegisterForm> {
         ),
         const SizedBox(height: 20),
         TextFormField(
+          controller: emailController,
           textInputAction: TextInputAction.next,
           decoration: const InputDecoration(
             prefixIcon: Icon(CupertinoIcons.mail, color: Colors.grey),
@@ -45,6 +76,7 @@ class _RegisterFormState extends State<RegisterForm> {
         ),
         const SizedBox(height: 20),
         TextFormField(
+          controller: passwordController,
           textInputAction: TextInputAction.done,
           obscureText: visible,
           decoration: InputDecoration(
@@ -95,18 +127,21 @@ class _RegisterFormState extends State<RegisterForm> {
           ),
         ),
         const SizedBox(height: 20),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.green,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: const Center(
-            child: Text(
-              " Register",
-              style: TextStyle(
-                color: Colors.white,
+        GestureDetector(
+          onTap: signup,
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Center(
+              child: Text(
+                " Register",
+                style: TextStyle(
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

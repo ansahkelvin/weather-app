@@ -1,7 +1,7 @@
+import 'package:farmers/pages/home.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import '../pages/home.dart';
 
 class AuthForm extends StatefulWidget {
   const AuthForm({Key? key}) : super(key: key);
@@ -11,12 +11,36 @@ class AuthForm extends StatefulWidget {
 }
 
 class _AuthFormState extends State<AuthForm> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
   bool isVisble = false;
+
+  Future<void> signin() async {
+    try {
+      final auth = FirebaseAuth.instance;
+      await auth.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      Navigator.of(context).pushReplacementNamed(HomePage.routeName);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString(),
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextFormField(
+          controller: emailController,
           textInputAction: TextInputAction.next,
           decoration: const InputDecoration(
             prefixIcon: Icon(
@@ -34,6 +58,7 @@ class _AuthFormState extends State<AuthForm> {
         ),
         const SizedBox(height: 20),
         TextFormField(
+          controller: passwordController,
           decoration: const InputDecoration(
             prefixIcon: Icon(CupertinoIcons.lock, color: Colors.grey),
             focusedBorder: UnderlineInputBorder(
@@ -59,12 +84,7 @@ class _AuthFormState extends State<AuthForm> {
         ),
         const SizedBox(height: 20),
         GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              HomePage.routeName,
-            );
-          },
+          onTap: signin,
           child: Container(
             width: MediaQuery.of(context).size.width,
             height: 50,
